@@ -90,7 +90,11 @@ public class PDFLayoutTextStripper extends PDFTextStripper {
     public void processPage(PDPage page) throws IOException {
         PDRectangle pageRectangle = page.getMediaBox();
         if (pageRectangle!= null) {
-            this.setCurrentPageWidth(pageRectangle.getWidth());
+			/*
+			 * added 150 to getWidth() method as it was not getting the right width for some
+			 * PDFs this code be done in a better way!
+			 */
+            this.setCurrentPageWidth(pageRectangle.getWidth()+150);
             super.processPage(page);
             this.previousTextPosition = null;
             this.textLineList = new ArrayList<TextLine>();
@@ -190,6 +194,10 @@ public class PDFLayoutTextStripper extends PDFTextStripper {
         if ( textYPosition > previousTextYPosition && (textYPosition - previousTextYPosition > 5.5) ) {
             double height = textPosition.getHeight();
             int numberOfLines = (int) (Math.floor( textYPosition - previousTextYPosition) / height );
+            // set numberOfLines to 3 if greater than 3 as it was giving huge vertical spaces            
+			if (numberOfLines > 3) {
+				numberOfLines = 3;
+			}
             numberOfLines = Math.max(1, numberOfLines - 1); // exclude current new line
             if (DEBUG) System.out.println(height + " " + numberOfLines);
             return numberOfLines ;
@@ -280,7 +288,8 @@ class TextLine {
     }
 
     private boolean isSpaceCharacterAtIndex(int index) {
-        return this.line.charAt(index) != SPACE_CHARACTER;
+    	// made index to return positive value as it was crashing for some PDFs where it had blank page
+        return this.line.charAt(index+1) != SPACE_CHARACTER;
     }
 
     private boolean isNewIndexGreaterThanLastIndex(int index) {
